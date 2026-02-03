@@ -23,7 +23,7 @@
             <p>{{ description }}</p>
             <a v-bind:href="link">More products like this</a>
             <p v-if="inStock">In stock</p>
-            <p v-else v-bind:class="{ 'out-of-stock': !inStock }">Out of stock</p>
+            <p v-else v-bind:style="{ textDecoration: 'line-through' }">Out of Stock</p>
             <ul>
                 <li v-for="detail in details">{{ detail }}</li>
             </ul>
