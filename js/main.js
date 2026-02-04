@@ -12,10 +12,6 @@ Vue.component('product-details', {
     `
 })
 
-
-
-
-
 Vue.component('product', {
     props: {
         premium: {
@@ -26,33 +22,29 @@ Vue.component('product', {
     template: `
     <div class="product">
         <div class="product-image">
-            <img v-bind:src="image" v-bind:alt="altText" />
+            <img :src="image" :alt="altText" />
         </div>
 
         <div class="product-info">
             <h1>{{ title }}</h1>
             <p>{{ sale }}</p>
             <p>{{ description }}</p>
-            <a v-bind:href="link">More products like this</a>
+            <a :href="link">More products like this</a>
             <p v-if="inStock">In stock</p>
             <p v-else v-bind:style="{ textDecoration: 'line-through' }">Out of Stock</p>
-            <ul>
-                <li v-for="detail in details">{{ detail }}</li>
-            </ul>
-            <p>Shipping: {{ shipping }}</p>
+            
+            <product-details :details="details"></product-details>
+            
             <div
                     class="color-box"
                     v-for="(variant, index) in variants"
                     :key="variant.variantId"
-                    :style="{ backgroundColor:variant.variantColor }"
+                    :style="{ backgroundColor: variant.variantColor }"
                     @mouseover="updateProduct(index)"
             ></div>
 
-            <div v-for="size in sizes">
+            <div v-for="size in sizes" :key="size">
                 <p>{{ size }}</p>
-            </div>
-            <div class="cart">
-                <p>Cart({{ cart }})</p>
             </div>
 
             <button
@@ -92,18 +84,15 @@ Vue.component('product', {
                 }
             ],
 
-            sizes: ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'],
-            cart: 0
+            sizes: ['S', 'M', 'L', 'XL', 'XXL', 'XXXL']
         }
     },
     methods: {
         addToCart() {
-            this.cart += 1
+            this.$emit('add-to-cart', this.variants[this.selectedVariant].variantId);
         },
         removeFromCart() {
-            if (this.cart > 0) {
-                this.cart -= 1
-            }
+            this.$emit('remove-from-cart', this.variants[this.selectedVariant].variantId);
         },
         updateProduct(index) {
             this.selectedVariant = index
@@ -126,22 +115,26 @@ Vue.component('product', {
             } else {
                 return this.brand + ' ' + this.product + ' не на распродаже'
             }
-        },
-        shipping() {
-            if (this.premium) {
-                return "Free";
-            } else {
-                return 2.99
-            }
         }
-
     }
 })
+
 
 let app = new Vue({
     el: '#app',
     data: {
         premium: true,
+        cart: []
+    },
+    methods: {
+        updateCart(id) {
+            this.cart.push(id);
+        },
+        removeFromCart(id) {
+            const index = this.cart.indexOf(id);
+            if (index !== -1) {
+                this.cart.splice(index, 1);
+            }
+        }
     }
 })
-
