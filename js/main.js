@@ -1,5 +1,6 @@
 let eventBus = new Vue()
 
+
 Vue.component('product-details', {
     props: {
         details: {
@@ -93,7 +94,6 @@ Vue.component('product-review', {
 
                 eventBus.$emit('review-submitted', productReview);
 
-                // Сброс формы
                 this.name = '';
                 this.review = '';
                 this.rating = null;
@@ -108,6 +108,14 @@ Vue.component('product-tabs', {
         reviews: {
             type: Array,
             required: false
+        },
+        shipping: {
+            type: String,
+            required: true
+        },
+        details: {
+            type: Array,
+            required: true
         }
     },
     template: `
@@ -137,11 +145,19 @@ Vue.component('product-tabs', {
             <div v-show="selectedTab === 'Make a Review'">
                 <product-review></product-review>
             </div>
+            
+            <div v-show="selectedTab === 'Shipping'">
+                <p>Shipping: {{ shipping }}</p>
+            </div>
+            
+            <div v-show="selectedTab === 'Details'">
+                <product-details :details="details"></product-details>
+            </div>
         </div>
     `,
     data() {
         return {
-            tabs: ['Reviews', 'Make a Review'],
+            tabs: ['Reviews', 'Make a Review', 'Shipping', 'Details'],
             selectedTab: 'Reviews'
         }
     }
@@ -168,8 +184,6 @@ Vue.component('product', {
             <p v-if="inStock">In stock</p>
             <p v-else v-bind:style="{ textDecoration: 'line-through' }">Out of Stock</p>
             
-            <product-details :details="details"></product-details>
-            
             <div
                     class="color-box"
                     v-for="(variant, index) in variants"
@@ -181,9 +195,6 @@ Vue.component('product', {
             <div v-for="size in sizes" :key="size">
                 <p>{{ size }}</p>
             </div>
-
-            <product-tabs :reviews="reviews"></product-tabs>
-
             <button
                     v-on:click="addToCart"
                     :disabled="!inStock"
@@ -191,7 +202,15 @@ Vue.component('product', {
             >
                 Add to cart
             </button>
-            <button v-on:click="removeFromCart">Remove from cart</button>
+            <button v-on:click="removeFromCart">Remove</button>
+            
+            <product-tabs 
+                :reviews="reviews" 
+                :shipping="shipping"
+                :details="details"
+            ></product-tabs>
+
+            
         </div>
     </div>
  `,
@@ -251,6 +270,13 @@ Vue.component('product', {
             } else {
                 return this.brand + ' ' + this.product + ' не на распродаже'
             }
+        },
+        shipping() {
+            if (this.premium) {
+                return "Free";
+            } else {
+                return "2.99";
+            }
         }
     },
     mounted() {
@@ -262,7 +288,8 @@ Vue.component('product', {
 
 let app = new Vue({
     el: '#app',
-    data: {
+    data:
+{
     premium: true,
         cart: []
 },
