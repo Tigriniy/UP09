@@ -1,3 +1,5 @@
+let eventBus = new Vue()
+
 Vue.component('product-details', {
     props: {
         details: {
@@ -89,13 +91,58 @@ Vue.component('product-review', {
                     recommend: this.recommend
                 };
 
-                this.$emit('review-submitted', productReview);
+                eventBus.$emit('review-submitted', productReview);
 
+                // Сброс формы
                 this.name = '';
                 this.review = '';
                 this.rating = null;
                 this.recommend = '';
             }
+        }
+    }
+})
+
+Vue.component('product-tabs', {
+    props: {
+        reviews: {
+            type: Array,
+            required: false
+        }
+    },
+    template: `
+        <div class="tabs">
+            <ul>
+                <span 
+                    class="tab"
+                    :class="{ activeTab: selectedTab === tab }"
+                    v-for="(tab, index) in tabs"
+                    :key="index"
+                    @click="selectedTab = tab"
+                >{{ tab }}</span>
+            </ul>
+            
+            <div v-show="selectedTab === 'Reviews'">
+                <p v-if="!reviews.length">There are no reviews yet.</p>
+                <ul>
+                    <li v-for="(review, index) in reviews" :key="index">
+                        <p><strong>{{ review.name }}</strong></p>
+                        <p>Rating: {{ review.rating }}/5</p>
+                        <p>{{ review.review }}</p>
+                        <p>Would recommend: {{ review.recommend }}</p>
+                    </li>
+                </ul>
+            </div>
+            
+            <div v-show="selectedTab === 'Make a Review'">
+                <product-review></product-review>
+            </div>
+        </div>
+    `,
+    data() {
+        return {
+            tabs: ['Reviews', 'Make a Review'],
+            selectedTab: 'Reviews'
         }
     }
 })
@@ -134,6 +181,9 @@ Vue.component('product', {
             <div v-for="size in sizes" :key="size">
                 <p>{{ size }}</p>
             </div>
+
+            <product-tabs :reviews="reviews"></product-tabs>
+
             <button
                     v-on:click="addToCart"
                     :disabled="!inStock"
@@ -142,21 +192,6 @@ Vue.component('product', {
                 Add to cart
             </button>
             <button v-on:click="removeFromCart">Remove from cart</button>
-            <div>
-                <h2>Reviews</h2>
-                <p v-if="reviews.length === 0">There are no reviews yet.</p>
-                <ul>
-                    <li v-for="(review, index) in reviews" :key="index">
-                        <p><strong>{{ review.name }}</strong></p>
-                        <p>Rating: {{ review.rating }}/5</p>
-                        <p>{{ review.review }}</p>
-                        <p>Would recommend: {{ review.recommend }}</p>
-                    </li>
-                </ul>
-            </div>
-
-            <product-review @review-submitted="addReview"></product-review>
-
         </div>
     </div>
  `,
@@ -198,9 +233,6 @@ Vue.component('product', {
         },
         updateProduct(index) {
             this.selectedVariant = index
-        },
-        addReview(review) {
-            this.reviews.push(review);
         }
     },
     computed: {
@@ -220,24 +252,29 @@ Vue.component('product', {
                 return this.brand + ' ' + this.product + ' не на распродаже'
             }
         }
+    },
+    mounted() {
+        eventBus.$on('review-submitted', productReview => {
+            this.reviews.push(productReview)
+        })
     }
 })
 
 let app = new Vue({
     el: '#app',
     data: {
-        premium: true,
+    premium: true,
         cart: []
+},
+methods: {
+    updateCart(id) {
+        this.cart.push(id);
     },
-    methods: {
-        updateCart(id) {
-            this.cart.push(id);
-        },
-        removeFromCart(id) {
-            const index = this.cart.indexOf(id);
-            if (index !== -1) {
-                this.cart.splice(index, 1);
-            }
+    removeFromCart(id) {
+        const index = this.cart.indexOf(id);
+        if (index !== -1) {
+            this.cart.splice(index, 1);
         }
     }
+}
 })
