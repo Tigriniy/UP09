@@ -1,4 +1,3 @@
-// Регистрация компонента product-details
 Vue.component('product-details', {
     props: {
         details: {
@@ -47,6 +46,18 @@ Vue.component('product-review', {
                 </p>
 
                 <p>
+                    <label>Would you recommend this product?</label><br>
+                    <label>
+                        <input type="radio" v-model="recommend" value="yes">
+                        Yes
+                    </label>
+                    <label>
+                        <input type="radio" v-model="recommend" value="no">
+                        No
+                    </label>
+                </p>
+
+                <p>
                     <input type="submit" value="Submit">
                 </p>
             </form>
@@ -57,6 +68,7 @@ Vue.component('product-review', {
             name: '',
             review: '',
             rating: null,
+            recommend: '',
             errors: []
         }
     },
@@ -67,25 +79,26 @@ Vue.component('product-review', {
             if (!this.name) this.errors.push("Name required.");
             if (!this.review) this.errors.push("Review required.");
             if (!this.rating) this.errors.push("Rating required.");
+            if (!this.recommend) this.errors.push("Recommendation required.");
 
             if (this.errors.length === 0) {
                 let productReview = {
                     name: this.name,
                     review: this.review,
-                    rating: Number(this.rating)
+                    rating: Number(this.rating),
+                    recommend: this.recommend
                 };
 
                 this.$emit('review-submitted', productReview);
 
-                // Сброс формы
                 this.name = '';
                 this.review = '';
                 this.rating = null;
+                this.recommend = '';
             }
         }
     }
 })
-
 
 Vue.component('product', {
     props: {
@@ -137,6 +150,7 @@ Vue.component('product', {
                         <p><strong>{{ review.name }}</strong></p>
                         <p>Rating: {{ review.rating }}/5</p>
                         <p>{{ review.review }}</p>
+                        <p>Would recommend: {{ review.recommend }}</p>
                     </li>
                 </ul>
             </div>
@@ -209,10 +223,9 @@ Vue.component('product', {
     }
 })
 
-// Корневой экземпляр Vue
 let app = new Vue({
     el: '#app',
-    data: {  // Добавлено `data:`
+    data: {
         premium: true,
         cart: []
     },
@@ -227,4 +240,4 @@ let app = new Vue({
             }
         }
     }
-});
+})
