@@ -1,6 +1,5 @@
 let eventBus = new Vue()
 
-
 Vue.component('product-details', {
     props: {
         details: {
@@ -171,49 +170,69 @@ Vue.component('product', {
         }
     },
     template: `
-    <div class="product">
-        <div class="product-image">
-            <img :src="image" :alt="altText" />
-        </div>
-
-        <div class="product-info">
-            <h1>{{ title }}</h1>
-            <p>{{ sale }}</p>
-            <p>{{ description }}</p>
-            <a :href="link">More products like this</a>
-            <p v-if="inStock">In stock</p>
-            <p v-else v-bind:style="{ textDecoration: 'line-through' }">Out of Stock</p>
-            
-            <div
+        <div class="product">
+            <div class="product-image">
+                <img :src="image" :alt="altText" />
+            </div>
+        
+            <div class="product-info">
+                <h1>{{ title }}</h1>
+                <p>{{ sale }}</p>
+                <p>{{ description }}</p>
+                <a :href="link">More products like this</a>
+                
+                <p v-if="inStock">In stock</p>
+                <p v-else v-bind:style="{ textDecoration: 'line-through' }">Out of Stock</p>
+                
+                <div class="price-info">
+                    <p v-if="discount > 0" class="original-price">
+                        Original price: {{ formattedOriginalPrice }}
+                    </p>
+                    <p class="current-price">
+                        <strong>Price: {{ formattedPriceWithDiscount }}</strong>
+                    </p>
+                    <p v-if="discount > 0" class="discount">
+                        <strong>Discount: {{ discount }}% OFF!</strong>
+                    </p>
+                </div>
+                
+                <div class="rating">
+                    <p v-if="averageRating > 0">
+                        <strong>Average Rating: {{ formattedAverageRating }}/5</strong>
+                        ({{ reviews.length }} reviews)
+                    </p>
+                    <p v-else>No ratings yet</p>
+                </div>
+                
+                <div
                     class="color-box"
                     v-for="(variant, index) in variants"
                     :key="variant.variantId"
                     :style="{ backgroundColor: variant.variantColor }"
                     @mouseover="updateProduct(index)"
-            ></div>
-
-            <div v-for="size in sizes" :key="size">
-                <p>{{ size }}</p>
-            </div>
-            <button
+                ></div>
+        
+                <div v-for="size in sizes" :key="size">
+                    <p>{{ size }}</p>
+                </div>
+                
+                <button
                     v-on:click="addToCart"
                     :disabled="!inStock"
                     :class="{ disabledButton: !inStock }"
-            >
-                Add to cart
-            </button>
-            <button v-on:click="removeFromCart">Remove</button>
-            
-            <product-tabs 
-                :reviews="reviews" 
-                :shipping="shipping"
-                :details="details"
-            ></product-tabs>
-
-            
+                >
+                    Add to cart
+                </button>
+                <button v-on:click="removeFromCart">Remove</button>
+                
+                <product-tabs 
+                    :reviews="reviews" 
+                    :shipping="shipping"
+                    :details="details"
+                ></product-tabs>
+            </div>
         </div>
-    </div>
- `,
+    `,
     data() {
         return {
             product: "Socks",
@@ -240,7 +259,9 @@ Vue.component('product', {
                 }
             ],
             sizes: ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'],
-            reviews: []
+            reviews: [],
+            price: 19.99,
+            discount: 25
         }
     },
     methods: {
@@ -271,12 +292,40 @@ Vue.component('product', {
                 return this.brand + ' ' + this.product + ' не на распродаже'
             }
         },
+        priceWithDiscount() {
+            if (this.discount > 0) {
+                return this.price * (1 - this.discount / 100);
+            }
+            return this.price;
+        },
+        originalPrice() {
+            return this.price;
+        },
+        averageRating() {
+            if (this.reviews.length === 0) {
+                return 0;
+            }
+
+            const totalRating = this.reviews.reduce((sum, review) => {
+                return sum + review.rating;
+            }, 0);
+            return totalRating / this.reviews.length;
+        },
         shipping() {
             if (this.premium) {
                 return "Free";
             } else {
                 return "2.99";
             }
+        },
+        formattedOriginalPrice() {
+            return this.originalPrice.toFixed(2);
+        },
+        formattedPriceWithDiscount() {
+            return this.priceWithDiscount.toFixed(2);
+        },
+        formattedAverageRating() {
+            return this.averageRating.toFixed(1);
         }
     },
     mounted() {
@@ -288,8 +337,7 @@ Vue.component('product', {
 
 let app = new Vue({
     el: '#app',
-    data:
-{
+    data: {
     premium: true,
         cart: []
 },
